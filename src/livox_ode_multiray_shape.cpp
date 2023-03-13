@@ -142,8 +142,8 @@ void LivoxOdeMultiRayShape::UpdateCallback(void *_data, dGeomID _o1, dGeomID _o2
         // Check for ray/collision intersections
         if (rayCollision && hitCollision)
         {
-            int n = dCollide(_o1, _o2, 1, &contact, sizeof(contact));
 
+            int n = dCollide(_o1, _o2, 1, &contact, sizeof(contact));
             if (n > 0)
             {
                 RayShapePtr shape = boost::static_pointer_cast<RayShape>(
@@ -185,72 +185,11 @@ void LivoxOdeMultiRayShape::AddRay(const ignition::math::Vector3d &_start,
     ray->SetPoints(_start, _end);
     this->rays.push_back(ray);
 }
+
 void LivoxOdeMultiRayShape::Init() {
-    ignition::math::Vector3d start, end, axis;
-    double yawAngle, pitchAngle;
-    // ignition::math::Quaternion ray;
-    double yDiff;
-    double horzMinAngle, horzMaxAngle;
-    int horzSamples = 1;
-    // double horzResolution = 1.0;
-
-    double pDiff = 0;
-    int vertSamples = 1;
-    // double vertResolution = 1.0;
-    double vertMinAngle = 0;
-
-    this->rayElem = this->sdf->GetElement("ray");
-    this->scanElem = this->rayElem->GetElement("scan");
-    this->horzElem = this->scanElem->GetElement("horizontal");
-    this->rangeElem = this->rayElem->GetElement("range");
-
-    if (this->scanElem->HasElement("vertical"))
-    {
-        this->vertElem = this->scanElem->GetElement("vertical");
-        vertMinAngle = this->vertElem->Get<double>("min_angle");
-        double vertMaxAngle = this->vertElem->Get<double>("max_angle");
-        vertSamples = this->vertElem->Get<unsigned int>("samples");
-        // vertResolution = this->vertElem->Get<double>("resolution");
-        pDiff = vertMaxAngle - vertMinAngle;
-        gzerr << "Vertical min_angle: " << vertMinAngle << " max_angle: " << vertMaxAngle << " angle diff: " << pDiff << "\n"; // 30 deg
-    }
-
-    horzMinAngle = this->horzElem->Get<double>("min_angle");
-    horzMaxAngle = this->horzElem->Get<double>("max_angle");
-    horzSamples = this->horzElem->Get<unsigned int>("samples");
-    // horzResolution = this->horzElem->Get<double>("resolution");
-    yDiff = horzMaxAngle - horzMinAngle;
-    gzerr << "Horizontal min_angle: " << horzMinAngle << " max_angle: " << horzMaxAngle << " angle diff: " << yDiff << "\n"; // 30 deg
-
-    minRayRange = this->rangeElem->Get<double>("min");
-    maxRayRange = this->rangeElem->Get<double>("max");
-    // The measurable range is (max-min)
+    MultiRayShape::Init();
+    this->rays.clear();
     fullRange = this->GetMaxRange() - this->GetMinRange();
-
-//    this->offset = this->collisionParent->GetRelativePose();
-
-    // Create an array of ray collisions
-//    for (unsigned int j = 0; j < (unsigned int)vertSamples; ++j)
-//    {
-//        for (unsigned int i = 0; i < (unsigned int)horzSamples; ++i)
-//        {
-//            yawAngle = (horzSamples == 1) ? 0 :
-//                       i * yDiff / (horzSamples - 1) + horzMinAngle;
-//
-//            pitchAngle = (vertSamples == 1)? 0 :
-//                         j * pDiff / (vertSamples - 1) + vertMinAngle;
-//
-//            // since we're rotating a unit x vector, a pitch rotation will now be
-//            // around the negative y axis
-//            ray.SetFromEuler(math::Vector3(0.0, -pitchAngle, yawAngle));
-//            axis = this->offset.rot * ray * math::Vector3(1.0, 0.0, 0.0);
-//
-//            start = (axis * minRange) + this->offset.pos;
-//            end = (axis * maxRange) + this->offset.pos;
-//
-//            this->AddRay(start, end);
-//        }
-//    }
 }
 
 //////////////////////////////////////////////////
@@ -259,6 +198,7 @@ void LivoxOdeMultiRayShape::Update()
   // Reset the ray lengths and mark the collisions as dirty (so they get
   // redrawn)
   unsigned int ray_size = this->rays.size();
+
   for (unsigned int i = 0; i < ray_size; i++)
   {
     this->rays[i]->SetLength(fullRange);
@@ -275,14 +215,3 @@ void LivoxOdeMultiRayShape::Update()
   this->newLaserScans();
 }
 
-//////////////////////////////////////////////////
-double LivoxOdeMultiRayShape::GetMinRange() const
-{
-  return minRayRange;
-}
-
-//////////////////////////////////////////////////
-double LivoxOdeMultiRayShape::GetMaxRange() const
-{
-  return maxRayRange;
-}
