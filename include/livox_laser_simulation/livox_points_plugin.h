@@ -87,7 +87,7 @@ class LivoxPointsPlugin : public RayPlugin {
     sdf::ElementPtr sdfPtr;
     msgs::LaserScanStamped laserMsg;
     transport::NodePtr node;
-    gazebo::sensors::SensorPtr raySensor;
+    sensors::RaySensorPtr raySensor;
     std::vector<AviaRotateInfo> aviaInfos;
 
     std::shared_ptr<ros::NodeHandle> rosNode;
@@ -98,11 +98,6 @@ class LivoxPointsPlugin : public RayPlugin {
     int64_t currStartIndex = 0;
     int64_t maxPointSize = 1000;
     int64_t downSample = 1;
-
-    double maxDist = 400.0;
-    double minDist = 0.1;
-
-    bool publish_pointcloud2_ = false;
 };
 
 }  // namespace gazebo

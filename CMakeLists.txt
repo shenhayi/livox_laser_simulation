@@ -44,6 +44,3 @@ target_link_libraries(livox_laser_gpu_simulation ${catkin_LIBRARIES} GpuRayPlugi
 install(TARGETS livox_laser_simulation livox_laser_gpu_simulation
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
-
-#target_link_libraries(livox_laser_gpu_simulation libprotobuf.so.9)
-#target_compile_definitions(livox_laser_gpu_simulation PRIVATE GAZEBO_GPU_RAY=1)
