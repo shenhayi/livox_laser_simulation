@@ -32,8 +32,6 @@ public:
   void Load(sensors::SensorPtr _parent, sdf::ElementPtr _sdf);
 
 private:
-  void SendRosTf(const ignition::math::Pose3d& pose, const std::string& /*father_frame*/, const std::string& /*child_frame*/);
-
   void OnNewLaserAnglesScans(ConstLaserScanAnglesStampedPtr& _msg);
 
   ros::NodeHandle* nh_;

@@ -30,29 +30,8 @@ LivoxGpuPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr _
 
   raySensor = std::dynamic_pointer_cast<sensors::GpuRaySensor>(_parent);
 
-  auto sensor_pose = raySensor->Pose();
-  SendRosTf(sensor_pose, raySensor->ParentName(), raySensor->Name());
-
   raySensor->SetActive(true);
   sub_ = gazebo_node_->Subscribe(raySensor->Topic(), &LivoxGpuPointsPlugin::OnNewLaserAnglesScans, this);
-}
-
-void
-LivoxGpuPointsPlugin::SendRosTf(const ignition::math::Pose3d& pose,
-                                const std::string& /*father_frame*/,
-                                const std::string& /*child_frame*/)
-{
-  if (!tfBroadcaster)
-  {
-    tfBroadcaster.reset(new tf::TransformBroadcaster);
-  }
-  tf::Transform tf;
-  auto rot = pose.Rot();
-  auto pos = pose.Pos();
-  tf.setRotation(tf::Quaternion(rot.X(), rot.Y(), rot.Z(), rot.W()));
-  tf.setOrigin(tf::Vector3(pos.X(), pos.Y(), pos.Z()));
-
-  tfBroadcaster->sendTransform(tf::StampedTransform(tf, ros::Time::now(), raySensor->ParentName(), raySensor->Name()));
 }
 
 void

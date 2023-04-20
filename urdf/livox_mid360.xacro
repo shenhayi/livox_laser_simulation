@@ -12,6 +12,15 @@
   <xacro:property name="downsample" value="1"/>
   <xacro:property name="gpu_enabled" value="true"/>
 
+  <xacro:macro name="null_inertial">
+    <inertial>
+      <mass value="0.1"/>
+    <inertia ixx="0.01" ixy="0" ixz="0"
+          iyy="0.01" iyz="0"
+          izz="0.01"/>
+    </inertial>
+  </xacro:macro>
+
   <!-- CPU Simulation -->
   <xacro:macro name="livox_mid_gazebo_sensor" params="visualize:=False update_rate:=10 resolution:=0.002 noise_mean:=0.0 noise_stddev:=0.02 name:=livox ros_topic:=/scan">
     <gazebo reference="${name}">
@@ -109,6 +118,7 @@
     </joint>
 
     <link name="${name}_base">
+      <xacro:null_inertial/>
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>

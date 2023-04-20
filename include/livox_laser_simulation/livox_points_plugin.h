@@ -78,8 +78,6 @@ class LivoxPointsPlugin : public RayPlugin {
 
     void InitializeScan(msgs::LaserScan*& scan);
 
-    void SendRosTf(const ignition::math::Pose3d& pose, const std::string& father_frame, const std::string& child_frame);
-
     boost::shared_ptr<physics::LivoxOdeMultiRayShape> rayShape;
     gazebo::physics::CollisionPtr laserCollision;
     physics::EntityPtr parentEntity;
