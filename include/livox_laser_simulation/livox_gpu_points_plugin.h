@@ -34,10 +34,8 @@ public:
 private:
   void OnNewLaserAnglesScans(ConstLaserScanAnglesStampedPtr& _msg);
 
-  ros::NodeHandle* nh_;
+  std::unique_ptr<ros::NodeHandle> nh_;
   ros::Publisher pub_;
-
-  std::shared_ptr<tf::TransformBroadcaster> tfBroadcaster;
 
   gazebo::sensors::GpuRaySensorPtr raySensor;
 

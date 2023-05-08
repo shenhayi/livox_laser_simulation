@@ -27,39 +27,38 @@
         <pose>0 0 0 0 0 0</pose>
         <visualize>${visualize}</visualize>
         <update_rate>${update_rate}</update_rate>
-        <!-- This ray plgin is only for visualization. -->
         <plugin name="gazebo_ros_laser_controller" filename="liblivox_laser_simulation.so">
-			<ray>
-			  <scan>
-				<horizontal>
-				<samples>100</samples>
-				<resolution>1</resolution>
-				<min_angle>${-horizontal_fov/360*M_PI}</min_angle>
-				<max_angle>${horizontal_fov/360*M_PI}</max_angle>
-				</horizontal>
-				<vertical>
-				<samples>50</samples>
-				<resolution>1</resolution>
-				<min_angle>${-vertical_fov/360*M_PI}</min_angle>
-				<max_angle>${vertical_fov/360*M_PI}</max_angle>
-				</vertical>
-			  </scan>
-			  <range>
-				<min>${laser_min_range}</min>
-				<max>${laser_max_range}</max>
-				<resolution>${resolution}</resolution>
-			  </range>
-			  <noise>
-				<type>gaussian</type>
-				<mean>${noise_mean}</mean>
-				<stddev>${noise_stddev}</stddev>
-			  </noise>
-			</ray>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>100</samples>
+                <resolution>1</resolution>
+                <min_angle>${-horizontal_fov/360*M_PI}</min_angle>
+                <max_angle>${horizontal_fov/360*M_PI}</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>50</samples>
+                <resolution>1</resolution>
+                <min_angle>${-vertical_fov/360*M_PI}</min_angle>
+                <max_angle>${vertical_fov/360*M_PI}</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>${laser_min_range}</min>
+              <max>${laser_max_range}</max>
+              <resolution>${resolution}</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>${noise_mean}</mean>
+              <stddev>${noise_stddev}</stddev>
+            </noise>
+          </ray>
           <visualize>${visualize}</visualize>
-		  <samples>${samples}</samples>
-		  <downsample>${downsample}</downsample>
-		  <csv_file_name>package://livox_laser_simulation/scan_mode/mid360.csv</csv_file_name>
-		  <ros_topic>${ros_topic}</ros_topic>
+          <samples>${samples}</samples>
+          <downsample>${downsample}</downsample>
+          <csv_file_name>package://livox_laser_simulation/scan_mode/mid360.csv</csv_file_name>
+          <ros_topic>${ros_topic}</ros_topic>
         </plugin>
       </sensor>
     </gazebo>
@@ -77,18 +76,18 @@
         <sample_csv_file>package://livox_laser_simulation/scan_mode/mid360.csv</sample_csv_file>
         <ray>
           <scan>
-          <horizontal>
-            <samples>1</samples>
-            <resolution>1</resolution>
-            <min_angle>${-horizontal_fov/360*M_PI}</min_angle>
-            <max_angle>${horizontal_fov/360*M_PI}</max_angle>
-          </horizontal>
-          <vertical>
-            <samples>1</samples>
-            <resolution>1</resolution>
-            <min_angle>${-vertical_fov/360*M_PI}</min_angle>
-            <max_angle>${vertical_fov/360*M_PI}</max_angle>
-          </vertical>
+            <horizontal>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>${-horizontal_fov/360*M_PI}</min_angle>
+              <max_angle>${horizontal_fov/360*M_PI}</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>1</samples>
+              <resolution>1</resolution>
+              <min_angle>${-vertical_fov/360*M_PI}</min_angle>
+              <max_angle>${vertical_fov/360*M_PI}</max_angle>
+            </vertical>
           </scan>
           <range>
             <min>${laser_min_range}</min>
@@ -101,10 +100,8 @@
             <stddev>${noise_stddev}</stddev>
           </noise>
         </ray>
-        <!-- This ray plgin is only for visualization. -->
         <plugin name="gazebo_ros_laser_controller" filename="liblivox_laser_gpu_simulation.so">
-		      <csv_file_name>package://livox_laser_simulation/scan_mode/mid360.csv</csv_file_name>
-		      <ros_topic>${ros_topic}</ros_topic>
+          <ros_topic>${ros_topic}</ros_topic>
         </plugin>
       </sensor>
     </gazebo>
@@ -116,17 +113,15 @@
       <visual> 
         <origin xyz="0.00 0 0.00" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://livox_laser_simulation/meshes/livox_mid360.stl">
-          </mesh>
+          <mesh filename="package://livox_laser_simulation/meshes/livox_mid360.stl"/>
         </geometry>
       </visual>
 
       <collision>
-          <origin xyz="0 0 0" rpy="0 0 0" />
-          <geometry>
-          <mesh filename="package://livox_laser_simulation/meshes/livox_mid360.stl">
-          </mesh>
-          </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://livox_laser_simulation/meshes/livox_mid360.stl"/>
+        </geometry>
       </collision>
     </link>
     <link name="${name}">

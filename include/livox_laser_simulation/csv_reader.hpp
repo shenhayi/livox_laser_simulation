@@ -6,6 +6,7 @@
 #define SRC_GAZEBO_CSV_READER_HPP
 
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>

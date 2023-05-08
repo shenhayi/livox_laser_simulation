@@ -134,7 +134,6 @@ void LivoxPointsPlugin::OnNewLaserScans() {
         sensor_msgs::PointCloud2Iterator<float> out_y(scan_point, "y");
         sensor_msgs::PointCloud2Iterator<float> out_z(scan_point, "z");
 
-        size_t i = 0;
         const size_t raySize = samplesStep;
         for (const auto [idx, rotateInfo] : points_pair) {
             auto range = RangeMin() + rayShape->GetRange(idx);
@@ -155,7 +154,6 @@ void LivoxPointsPlugin::OnNewLaserScans() {
             ++out_x;
             ++out_y;
             ++out_z;
-
         }
         if (scanPub && scanPub->HasConnections()) scanPub->Publish(laserMsg);
         rosPointPub.publish(scan_point);

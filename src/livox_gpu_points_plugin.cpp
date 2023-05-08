@@ -1,6 +1,7 @@
-#include <livox_laser_simulation/livox_gpu_points_plugin.h>
-
 #include "livox_laser_simulation/csv_reader.hpp"
+#include "livox_laser_simulation/livox_gpu_points_plugin.h"
+
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 namespace gazebo
 {
@@ -25,7 +26,7 @@ LivoxGpuPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr _
   auto curr_scan_topic = _sdf->Get<std::string>("ros_topic");
 
   // Create Node Handle
-  nh_ = new ros::NodeHandle();
+  nh_ = std::unique_ptr<ros::NodeHandle>(new ros::NodeHandle());
   pub_ = nh_->advertise<sensor_msgs::PointCloud2>(curr_scan_topic, 5);
 
   raySensor = std::dynamic_pointer_cast<sensors::GpuRaySensor>(_parent);
@@ -37,46 +38,58 @@ LivoxGpuPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr _
 void
 LivoxGpuPointsPlugin::OnNewLaserAnglesScans(ConstLaserScanAnglesStampedPtr& _msg)
 {
-  const double MIN_RANGE = raySensor->RangeMin();;
-  const double MAX_RANGE = raySensor->RangeMax();;
-  const double MIN_INTENSITY = 0.0;
-
+  const double MIN_RANGE = raySensor->RangeMin();
+  const double MAX_RANGE = raySensor->RangeMax();
+  constexpr double MIN_INTENSITY = 0.0;
   const unsigned int sampleSize = raySensor->SampleSize();
 
   // Populate message fields
   const unsigned int POINT_STEP = 22;
-  sensor_msgs::PointCloud2 msg;
-  msg.header.frame_id = raySensor->Name(); // laser_livox
-  msg.header.stamp = ros::Time(_msg->time().sec(), _msg->time().nsec());
-  msg.fields.resize(6);
-  msg.fields[0].name = "x";
-  msg.fields[0].offset = 0;
-  msg.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
-  msg.fields[0].count = 1;
-  msg.fields[1].name = "y";
-  msg.fields[1].offset = 4;
-  msg.fields[1].datatype = sensor_msgs::PointField::FLOAT32;
-  msg.fields[1].count = 1;
-  msg.fields[2].name = "z";
-  msg.fields[2].offset = 8;
-  msg.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
-  msg.fields[2].count = 1;
-  msg.fields[3].name = "intensity";
-  msg.fields[3].offset = 12;
-  msg.fields[3].datatype = sensor_msgs::PointField::FLOAT32;
-  msg.fields[3].count = 1;
-  msg.fields[4].name = "ring";
-  msg.fields[4].offset = 16;
-  msg.fields[4].datatype = sensor_msgs::PointField::UINT16;
-  msg.fields[4].count = 1;
-  msg.fields[5].name = "time";
-  msg.fields[5].offset = 18;
-  msg.fields[5].datatype = sensor_msgs::PointField::FLOAT32;
-  msg.fields[5].count = 1;
-  msg.data.resize(sampleSize * POINT_STEP);
 
-  uint8_t* ptr = msg.data.data();
-  for (unsigned int i = 0; i < sampleSize; i++)
+  sensor_msgs::PointCloud2Ptr cloud = boost::make_shared<sensor_msgs::PointCloud2>();
+  cloud->header.frame_id = raySensor->Name(); // laser_livox
+  cloud->header.stamp = ros::Time(_msg->time().sec(), _msg->time().nsec());
+  cloud->fields.resize(6);
+  cloud->fields[0].name = "x";
+  cloud->fields[0].offset = 0;
+  cloud->fields[0].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud->fields[0].count = 1;
+  cloud->fields[1].name = "y";
+  cloud->fields[1].offset = 4;
+  cloud->fields[1].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud->fields[1].count = 1;
+  cloud->fields[2].name = "z";
+  cloud->fields[2].offset = 8;
+  cloud->fields[2].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud->fields[2].count = 1;
+  cloud->fields[3].name = "intensity";
+  cloud->fields[3].offset = 12;
+  cloud->fields[3].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud->fields[3].count = 1;
+  cloud->fields[4].name = "ring";
+  cloud->fields[4].offset = 16;
+  cloud->fields[4].datatype = sensor_msgs::PointField::UINT16;
+  cloud->fields[4].count = 1;
+  cloud->fields[5].name = "time";
+  cloud->fields[5].offset = 18;
+  cloud->fields[5].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud->fields[5].count = 1;
+  cloud->data.resize(sampleSize * POINT_STEP);
+  cloud->point_step = POINT_STEP;
+  cloud->is_bigendian = false;
+  cloud->width = sampleSize;
+  cloud->height = 1;
+  cloud->row_step = sampleSize * cloud->point_step;
+  cloud->is_dense = true;
+
+  sensor_msgs::PointCloud2Iterator<float> iter_x(*cloud, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(*cloud, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(*cloud, "z");
+  sensor_msgs::PointCloud2Iterator<float> iter_intensity(*cloud, "intensity");
+  sensor_msgs::PointCloud2Iterator<uint16_t> iter_ring(*cloud, "ring");
+  sensor_msgs::PointCloud2Iterator<float> iter_time(*cloud, "time");
+
+  for (size_t i = 0; i < sampleSize; ++i, ++iter_x, ++iter_y, ++iter_z, ++iter_intensity, ++iter_ring, ++iter_time)
   {
     double r = _msg->scan().ranges(i);
     double intensity = _msg->scan().intensities(i);
@@ -88,27 +101,16 @@ LivoxGpuPointsPlugin::OnNewLaserAnglesScans(ConstLaserScanAnglesStampedPtr& _msg
     // pAngle is rotated by yAngle:
     if ((MIN_RANGE < r) && (r < MAX_RANGE))
     {
-      // ROS_INFO_STREAM("Range: " << r);
-      *((float*)(ptr + 0)) = r * cos(pAngle) * cos(yAngle); // x
-      *((float*)(ptr + 4)) = r * cos(pAngle) * sin(yAngle); // y
-      *((float*)(ptr + 8)) = r * sin(pAngle); // z
-      *((float*)(ptr + 12)) = intensity; // intensity
-      *((uint16_t*)(ptr + 16)) = 0; // ring
-      *((float*)(ptr + 18)) = 0.0; // time
-      ptr += POINT_STEP;
+      *iter_x = r * cos(pAngle) * cos(yAngle);
+      *iter_y = r * cos(pAngle) * sin(yAngle);
+      *iter_z = r * sin(pAngle);
+      *iter_intensity = intensity;
+      *iter_ring = 0;
+      *iter_time = 0.0;
     }
   }
-  // Populate message with number of valid points
-  msg.data.resize(ptr - msg.data.data()); // Shrink to actual size
-  msg.point_step = POINT_STEP;
-  msg.is_bigendian = false;
-  msg.width = msg.data.size() / POINT_STEP;
-  msg.height = 1;
-  msg.row_step = msg.data.size();
-  msg.is_dense = true;
-
   // Publish output
-  pub_.publish(msg);
+  pub_.publish(cloud);
 }
 
 } // namespace gazebo

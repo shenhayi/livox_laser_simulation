@@ -221,31 +221,6 @@ void LivoxOdeMultiRayShape::Init() {
     maxRayRange = this->rangeElem->Get<double>("max");
     // The measurable range is (max-min)
     fullRange = this->GetMaxRange() - this->GetMinRange();
-
-//    this->offset = this->collisionParent->GetRelativePose();
-
-    // Create an array of ray collisions
-//    for (unsigned int j = 0; j < (unsigned int)vertSamples; ++j)
-//    {
-//        for (unsigned int i = 0; i < (unsigned int)horzSamples; ++i)
-//        {
-//            yawAngle = (horzSamples == 1) ? 0 :
-//                       i * yDiff / (horzSamples - 1) + horzMinAngle;
-//
-//            pitchAngle = (vertSamples == 1)? 0 :
-//                         j * pDiff / (vertSamples - 1) + vertMinAngle;
-//
-//            // since we're rotating a unit x vector, a pitch rotation will now be
-//            // around the negative y axis
-//            ray.SetFromEuler(math::Vector3(0.0, -pitchAngle, yawAngle));
-//            axis = this->offset.rot * ray * math::Vector3(1.0, 0.0, 0.0);
-//
-//            start = (axis * minRange) + this->offset.pos;
-//            end = (axis * maxRange) + this->offset.pos;
-//
-//            this->AddRay(start, end);
-//        }
-//    }
 }
 
 //////////////////////////////////////////////////
@@ -253,7 +228,7 @@ void LivoxOdeMultiRayShape::Update()
 {
   // Reset the ray lengths and mark the collisions as dirty (so they get
   // redrawn)
-  unsigned int ray_size = this->rays.size();
+  const unsigned int ray_size = this->rays.size();
   for (unsigned int i = 0; i < ray_size; i++)
   {
     this->rays[i]->SetLength(fullRange);
