@@ -17,6 +17,7 @@
 
 #include <sdf/Param.hh>
 
+#include <memory>
 #include <vector>
 
 namespace gazebo
