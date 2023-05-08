@@ -6,6 +6,7 @@
 #define SRC_GAZEBO_CSV_READER_HPP
 
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -36,7 +37,6 @@ class CsvReader {
                 }
                 datas.push_back(data);
             }
-            std::cerr << "data size:" << datas.size() << "\n";
             return true;
         } else {
             std::cerr << "cannot read csv file!" << file_name << "\n";

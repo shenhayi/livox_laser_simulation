@@ -7,7 +7,7 @@
 #include <gazebo/physics/MultiRayShape.hh>
 #include <gazebo/util/system.hh>
 #include <gazebo/ode/common.h>
-#include <ignition/math4/ignition/math.hh>
+#include <ignition/math6/ignition/math.hh>
 
 namespace gazebo{
 namespace physics{
@@ -43,8 +43,22 @@ class GZ_PHYSICS_VISIBLE LivoxOdeMultiRayShape : public MultiRayShape{
     /// \brief Ray space for collision detector.
     private: dSpaceID raySpaceId;
 
+    public: void Update();
+
+    /// \brief Get the minimum range.
+    /// \return Minimum range of all the rays.
+    public: double GetMinRange() const;
+
+    /// \brief Get the maximum range.
+    /// \return Maximum range of all the rays.
+    public: double GetMaxRange() const;
+
  private:
     std::vector<RayShapePtr> livoxRays;
+
+    double fullRange;
+    double minRayRange;
+    double maxRayRange;
 };
 }
 }

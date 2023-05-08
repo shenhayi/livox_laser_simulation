@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(livox_laser_simulation)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+## Compile as C++17
+add_compile_options(-std=c++17)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -28,11 +28,19 @@ include_directories(
 
 catkin_package(
         INCLUDE_DIRS include
-        LIBRARIES livox_laser_simulation
+        LIBRARIES livox_laser_simulation livox_laser_gpu_simulation
         CATKIN_DEPENDS tf
 )
 
+# CPU based laser simulation
 add_library(livox_laser_simulation SHARED src/livox_points_plugin.cpp src/livox_ode_multiray_shape.cpp)
 target_link_libraries(livox_laser_simulation ${catkin_LIBRARIES} RayPlugin)
+target_link_libraries(livox_laser_simulation libprotobuf.so)
 
-target_link_libraries(livox_laser_simulation libprotobuf.so.9)
+# GPU accelerated laser simulation
+add_library(livox_laser_gpu_simulation SHARED src/livox_gpu_points_plugin.cpp)
+target_link_libraries(livox_laser_gpu_simulation ${catkin_LIBRARIES} GpuRayPlugin)
+
+install(TARGETS livox_laser_simulation livox_laser_gpu_simulation
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)

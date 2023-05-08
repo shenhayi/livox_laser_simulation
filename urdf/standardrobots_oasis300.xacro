@@ -61,7 +61,7 @@
 	<joint name="livox_base_joint" type="fixed">
         <parent link="${base_link}"/>
         <child link="livox_base"/>
-        <origin rpy="0 0 1.5707"
+        <origin rpy="0 0 ${M_PI/2}"
                 xyz="0.0 0.4 0.3057"/>
     </joint>
     </xacro:macro>
