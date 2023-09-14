@@ -44,3 +44,7 @@ target_link_libraries(livox_laser_gpu_simulation ${catkin_LIBRARIES} GpuRayPlugi
 install(TARGETS livox_laser_simulation livox_laser_gpu_simulation
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
+
+install(DIRECTORY scan_mode
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
