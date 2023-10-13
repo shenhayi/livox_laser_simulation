@@ -82,6 +82,7 @@ class LivoxPointsPlugin : public RayPlugin {
     gazebo::physics::CollisionPtr laserCollision;
     physics::EntityPtr parentEntity;
     transport::PublisherPtr scanPub;
+    transport::PublisherPtr scanPubNoReturns;
     sdf::ElementPtr sdfPtr;
     msgs::LaserScanStamped laserMsg;
     transport::NodePtr node;
@@ -90,6 +91,7 @@ class LivoxPointsPlugin : public RayPlugin {
 
     std::shared_ptr<ros::NodeHandle> rosNode;
     ros::Publisher rosPointPub;
+    ros::Publisher rosPointNoReturnPub;
     std::shared_ptr<tf::TransformBroadcaster> tfBroadcaster;
 
     int64_t samplesStep = 0;

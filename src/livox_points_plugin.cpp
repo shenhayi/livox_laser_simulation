@@ -57,7 +57,7 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
     ros::init(argc, argv, curr_scan_topic);
     rosNode.reset(new ros::NodeHandle);
     rosPointPub = rosNode->advertise<sensor_msgs::PointCloud2>(curr_scan_topic, 5);
-
+    rosPointNoReturnPub = rosNode->advertise<sensor_msgs::PointCloud2>(curr_scan_topic + "_no_returns", 5);
     raySensor = std::dynamic_pointer_cast<sensors::RaySensor>(_parent);
 
     node = transport::NodePtr(new transport::Node());
@@ -135,6 +135,7 @@ void LivoxPointsPlugin::OnNewLaserScans() {
         sensor_msgs::PointCloud2Iterator<float> out_z(scan_point, "z");
 
         const size_t raySize = samplesStep;
+        size_t countNoReturn {0};
         for (const auto [idx, rotateInfo] : points_pair) {
             auto range = RangeMin() + rayShape->GetRange(idx);
             auto intensity = rayShape->GetRetro(idx);
@@ -142,6 +143,8 @@ void LivoxPointsPlugin::OnNewLaserScans() {
                 range = 0.0;
             } else if (range <= RangeMin()) {
                 range = 0.0;
+                // this one should could be a point with no return -> publish it in second cloud with zenith / azimuth
+                countNoReturn++;
             }
 
             ignition::math::Quaterniond ray;
@@ -157,6 +160,48 @@ void LivoxPointsPlugin::OnNewLaserScans() {
         }
         if (scanPub && scanPub->HasConnections()) scanPub->Publish(laserMsg);
         rosPointPub.publish(scan_point);
+
+        // also publish all points with no return
+        sensor_msgs::PointCloud2 scan_point_no_return;
+        scan_point_no_return.header.stamp = ros::Time::now();
+        scan_point_no_return.header.frame_id = raySensor->Name();
+        sensor_msgs::PointCloud2Modifier modifier_no_return(scan_point_no_return);
+        modifier_no_return.setPointCloud2Fields(5, "x", 1, sensor_msgs::PointField::FLOAT32,
+                                                   "y", 1, sensor_msgs::PointField::FLOAT32,
+                                                   "z", 1, sensor_msgs::PointField::FLOAT32,
+                                                   "yaw", 1, sensor_msgs::PointField::FLOAT32,
+                                                   "pitch", 1, sensor_msgs::PointField::FLOAT32); 
+        modifier_no_return.resize(countNoReturn);
+        sensor_msgs::PointCloud2Iterator<float> out_no_return_x(scan_point_no_return, "x");
+        sensor_msgs::PointCloud2Iterator<float> out_no_return_y(scan_point_no_return, "y");
+        sensor_msgs::PointCloud2Iterator<float> out_no_return_z(scan_point_no_return, "z");
+
+        sensor_msgs::PointCloud2Iterator<float> out_yaw(scan_point_no_return, "yaw");
+        sensor_msgs::PointCloud2Iterator<float> out_pitch(scan_point_no_return, "pitch");
+
+        for (const auto [idx, rotateInfo] : points_pair) {
+            auto range = rayShape->GetRange(idx);
+            if (range == 0.0)
+            {
+                // set to fixed range to be able to show it in rViz
+                range = 2.0;
+                *out_yaw = rotateInfo.azimuth;
+                *out_pitch = rotateInfo.zenith;
+                ignition::math::Quaterniond ray;
+                ray.Euler(ignition::math::Vector3d(0.0, rotateInfo.zenith, rotateInfo.azimuth));
+                auto axis = ray * ignition::math::Vector3d(1.0, 0.0, 0.0);
+                auto point = range * axis;
+                *out_no_return_x = point.X();
+                *out_no_return_y = point.Y();
+                *out_no_return_z = point.Z();
+                ++out_no_return_x;
+                ++out_no_return_y;
+                ++out_no_return_z;
+                ++out_yaw;
+                ++out_pitch;
+            }
+        }
+        rosPointNoReturnPub.publish(scan_point_no_return);
         ros::spinOnce();
     }
 }
