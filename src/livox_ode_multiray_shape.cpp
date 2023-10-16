@@ -164,12 +164,18 @@ void LivoxOdeMultiRayShape::UpdateCallback(void *_data, dGeomID _o1, dGeomID _o2
                     if (hitCollision->GetLaserRetro() < 0.0001)
                     {
                         shape->SetLength(0.0);
+                        shape->SetRetro(0.0);
+                    }
+                    else if(hitCollision->GetLaserRetro() <= 0.13371 && hitCollision->GetLaserRetro() >= 0.13369)
+                    {
+                        shape->SetLength(0.0);
+                        shape->SetRetro(0.1337);
                     }
                     else
                     {
                         shape->SetLength(contact.depth);
+                        shape->SetRetro(hitCollision->GetLaserRetro());
                     }
-                    shape->SetRetro(hitCollision->GetLaserRetro());
                 }
             }
         }

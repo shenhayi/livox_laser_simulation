@@ -18,6 +18,8 @@
 #include "livox_laser_simulation/csv_reader.hpp"
 #include "livox_laser_simulation/livox_ode_multiray_shape.h"
 
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 namespace gazebo {
 
 GZ_REGISTER_SENSOR_PLUGIN(LivoxPointsPlugin)
@@ -58,6 +60,7 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
     rosNode.reset(new ros::NodeHandle);
     rosPointPub = rosNode->advertise<sensor_msgs::PointCloud2>(curr_scan_topic, 5);
     rosPointNoReturnPub = rosNode->advertise<sensor_msgs::PointCloud2>(curr_scan_topic + "_no_returns", 5);
+    rosMarkersPub = rosNode->advertise<visualization_msgs::MarkerArray>(curr_scan_topic + "_no_returns_marker", 1);
     raySensor = std::dynamic_pointer_cast<sensors::RaySensor>(_parent);
 
     node = transport::NodePtr(new transport::Node());
@@ -178,13 +181,34 @@ void LivoxPointsPlugin::OnNewLaserScans() {
 
         sensor_msgs::PointCloud2Iterator<float> out_yaw(scan_point_no_return, "yaw");
         sensor_msgs::PointCloud2Iterator<float> out_pitch(scan_point_no_return, "pitch");
+        visualization_msgs::MarkerArray marker_array_msg;
 
+        visualization_msgs::Marker marker_msg;
+        marker_msg.header.frame_id = raySensor->Name();
+        marker_msg.header.stamp = scan_point_no_return.header.stamp;
+        marker_msg.ns = "livox_simulation";
+        size_t marker_id {0};
+        marker_msg.id = marker_id;
+        marker_msg.type = visualization_msgs::Marker::ARROW;
+        marker_msg.color.r = 0.0;
+        marker_msg.color.g = 0.0;
+        marker_msg.color.b = 1.0;
+        marker_msg.color.a = 1.0;
+        marker_msg.pose.orientation.w = 1.0;
+        marker_msg.scale.x = 0.05;
+        marker_msg.scale.y = 0.05;
+        marker_msg.scale.z = 0.05;
+        marker_msg.pose.position.z = 0.0;
+        marker_msg.pose.orientation.w = 1.0;
+        marker_msg.action = visualization_msgs::Marker::MODIFY;
+        geometry_msgs::Point point_zero_msg;
         for (const auto [idx, rotateInfo] : points_pair) {
             auto range = rayShape->GetRange(idx);
-            if (range == 0.0)
+            auto retro = rayShape->GetRetro(idx);
+            if (range == 0.0 && retro >= 0.13369 && retro <= 0.13371)
             {
                 // set to fixed range to be able to show it in rViz
-                range = 2.0;
+                range = 15.0;
                 *out_yaw = rotateInfo.azimuth;
                 *out_pitch = rotateInfo.zenith;
                 ignition::math::Quaterniond ray;
@@ -199,9 +223,24 @@ void LivoxPointsPlugin::OnNewLaserScans() {
                 ++out_no_return_z;
                 ++out_yaw;
                 ++out_pitch;
+                marker_msg.points.emplace_back(point_zero_msg);
+
+                // Marker
+                geometry_msgs::Point point_msg;
+                point_msg.x = static_cast<double>(point.X());
+                point_msg.y = static_cast<double>(point.Y());
+                point_msg.z = static_cast<double>(point.Z());
+                marker_msg.points.emplace_back(point_msg);
+                marker_msg.id = marker_id++;
+                marker_array_msg.markers.push_back(marker_msg);
+                marker_msg.points.clear();
             }
         }
         rosPointNoReturnPub.publish(scan_point_no_return);
+
+        // publish no returns also as Marker
+        rosMarkersPub.publish(marker_array_msg);
+
         ros::spinOnce();
     }
 }
