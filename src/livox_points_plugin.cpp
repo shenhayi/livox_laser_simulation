@@ -51,6 +51,7 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
         ROS_INFO_STREAM("cannot get csv file!" << file_name << "will return !");
         return;
     }
+    ROS_INFO_STREAM("loaded csv file name:" << file_name);
     sdfPtr = sdf;
     int argc = 0;
     char **argv = nullptr;
@@ -89,10 +90,13 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
     if (downSample < 1) {
         downSample = 1;
     }
+    ROS_INFO_STREAM("rayShape->RayShapes()");
     rayShape->RayShapes().reserve(samplesStep / downSample);
+    ROS_INFO_STREAM("rayShape->Load()");
     rayShape->Load(sdfPtr);
+    ROS_INFO_STREAM("rayShape->Init()");
     rayShape->Init();
-
+    ROS_INFO_STREAM("AddRay");
     auto offset = laserCollision->RelativePose();
     ignition::math::Vector3d start_point, end_point;
     for (int j = 0; j < samplesStep; j += downSample) {
@@ -105,7 +109,7 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
         end_point = RangeMax() * axis + offset.Pos();
         rayShape->AddRay(start_point, end_point);
     }
-
+    ROS_INFO_STREAM("SetActive");
     raySensor->SetActive(true);
 }
 
@@ -147,6 +151,12 @@ void LivoxPointsPlugin::OnNewLaserScans() {
             } else if (range <= RangeMin()) {
                 range = 0.0;
                 // this one should could be a point with no return -> publish it in second cloud with zenith / azimuth
+            }
+
+            auto retro = rayShape->GetRetro(idx);
+            if(retro >= 0.13369 && retro <= 0.13371)
+            {
+                range = 0.0;
                 countNoReturn++;
             }
 
@@ -203,12 +213,13 @@ void LivoxPointsPlugin::OnNewLaserScans() {
         marker_msg.action = visualization_msgs::Marker::MODIFY;
         geometry_msgs::Point point_zero_msg;
         for (const auto [idx, rotateInfo] : points_pair) {
-            auto range = rayShape->GetRange(idx);
+            //auto range = rayShape->GetRange(idx);
+            auto range = RangeMin() + rayShape->GetRange(idx);
             auto retro = rayShape->GetRetro(idx);
-            if (range == 0.0 && retro >= 0.13369 && retro <= 0.13371)
+            if (retro >= 0.13369 && retro <= 0.13371) // range == 0.0 &&
             {
                 // set to fixed range to be able to show it in rViz
-                range = 15.0;
+                //range = 15.0;
                 *out_yaw = rotateInfo.azimuth;
                 *out_pitch = rotateInfo.zenith;
                 ignition::math::Quaterniond ray;

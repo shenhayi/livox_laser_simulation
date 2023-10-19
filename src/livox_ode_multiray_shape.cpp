@@ -166,9 +166,10 @@ void LivoxOdeMultiRayShape::UpdateCallback(void *_data, dGeomID _o1, dGeomID _o2
                         shape->SetLength(0.0);
                         shape->SetRetro(0.0);
                     }
+                    // Black car
                     else if(hitCollision->GetLaserRetro() <= 0.13371 && hitCollision->GetLaserRetro() >= 0.13369)
                     {
-                        shape->SetLength(0.0);
+                        shape->SetLength(contact.depth); // point is normally in center 0.0, but publish it at contact for visu
                         shape->SetRetro(0.1337);
                     }
                     else
