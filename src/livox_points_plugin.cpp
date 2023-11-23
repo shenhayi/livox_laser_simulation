@@ -46,22 +46,20 @@ void convertDataToRotateInfo(const std::vector<std::vector<double>> &datas, std:
 void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr sdf) {
     std::vector<std::vector<double>> datas;
     std::string file_name = sdf->Get<std::string>("csv_file_name");
-    ROS_INFO_STREAM("load csv file name:" << file_name);
     if (!CsvReader::ReadCsvFile(file_name, datas)) {
         ROS_INFO_STREAM("cannot get csv file!" << file_name << "will return !");
         return;
     }
-    ROS_INFO_STREAM("loaded csv file name:" << file_name);
     sdfPtr = sdf;
     int argc = 0;
     char **argv = nullptr;
     auto curr_scan_topic = sdf->Get<std::string>("ros_topic");
-
     ros::init(argc, argv, curr_scan_topic);
     rosNode.reset(new ros::NodeHandle);
     rosPointPub = rosNode->advertise<sensor_msgs::PointCloud2>(curr_scan_topic, 5);
-    rosPointNoReturnPub = rosNode->advertise<sensor_msgs::PointCloud2>(curr_scan_topic + "_no_returns", 5);
-    rosMarkersPub = rosNode->advertise<visualization_msgs::MarkerArray>(curr_scan_topic + "_no_returns_marker", 1);
+    auto curr_non_return_topic = sdf->Get<std::string>("ros_non_return_topic");
+    rosPointNonReturnPub = rosNode->advertise<sensor_msgs::PointCloud2>(curr_non_return_topic, 5);
+    rosMarkersPub = rosNode->advertise<visualization_msgs::MarkerArray>(curr_non_return_topic + "_marker", 1);
     raySensor = std::dynamic_pointer_cast<sensors::RaySensor>(_parent);
 
     node = transport::NodePtr(new transport::Node());
@@ -69,7 +67,6 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
     scanPub = node->Advertise<msgs::LaserScanStamped>(_parent->Topic(), 50);
     aviaInfos.clear();
     convertDataToRotateInfo(datas, aviaInfos);
-    ROS_INFO_STREAM("scan info size:" << aviaInfos.size());
     maxPointSize = aviaInfos.size();
 
     RayPlugin::Load(_parent, sdfPtr);
@@ -90,13 +87,10 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
     if (downSample < 1) {
         downSample = 1;
     }
-    ROS_INFO_STREAM("rayShape->RayShapes()");
     rayShape->RayShapes().reserve(samplesStep / downSample);
-    ROS_INFO_STREAM("rayShape->Load()");
     rayShape->Load(sdfPtr);
-    ROS_INFO_STREAM("rayShape->Init()");
     rayShape->Init();
-    ROS_INFO_STREAM("AddRay");
+
     auto offset = laserCollision->RelativePose();
     ignition::math::Vector3d start_point, end_point;
     for (int j = 0; j < samplesStep; j += downSample) {
@@ -109,7 +103,6 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
         end_point = RangeMax() * axis + offset.Pos();
         rayShape->AddRay(start_point, end_point);
     }
-    ROS_INFO_STREAM("SetActive");
     raySensor->SetActive(true);
 }
 
@@ -133,6 +126,11 @@ void LivoxPointsPlugin::OnNewLaserScans() {
 
         sensor_msgs::PointCloud2 scan_point;
         scan_point.header.stamp = ros::Time::now();
+        if (scan_point.header.stamp.toSec() == 0.0)
+        {
+            // do not publish, if rostime is still 0, otherwise the validation of the cloud will fail
+            return;
+        }
         scan_point.header.frame_id = raySensor->Name();
         sensor_msgs::PointCloud2Modifier modifier(scan_point);
         modifier.setPointCloud2FieldsByString(1, "xyz");
@@ -247,7 +245,7 @@ void LivoxPointsPlugin::OnNewLaserScans() {
                 marker_msg.points.clear();
             }
         }
-        rosPointNoReturnPub.publish(scan_point_no_return);
+        rosPointNonReturnPub.publish(scan_point_no_return);
 
         // publish no returns also as Marker
         rosMarkersPub.publish(marker_array_msg);

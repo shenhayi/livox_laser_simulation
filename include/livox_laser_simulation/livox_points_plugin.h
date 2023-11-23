@@ -91,7 +91,8 @@ class LivoxPointsPlugin : public RayPlugin {
 
     std::shared_ptr<ros::NodeHandle> rosNode;
     ros::Publisher rosPointPub;
-    ros::Publisher rosPointNoReturnPub;
+    ros::Publisher rosPointNonReturnPub;
+
     ros::Publisher rosMarkersPub;
 
     std::shared_ptr<tf::TransformBroadcaster> tfBroadcaster;
