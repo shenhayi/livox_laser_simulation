@@ -152,7 +152,7 @@ void LivoxPointsPlugin::OnNewLaserScans() {
             }
 
             auto retro = rayShape->GetRetro(idx);
-            if(retro >= 0.13369 && retro <= 0.13371)
+            if(retro == 0.0)
             {
                 range = 0.0;
                 countNoReturn++;
@@ -211,13 +211,10 @@ void LivoxPointsPlugin::OnNewLaserScans() {
         marker_msg.action = visualization_msgs::Marker::MODIFY;
         geometry_msgs::Point point_zero_msg;
         for (const auto [idx, rotateInfo] : points_pair) {
-            //auto range = rayShape->GetRange(idx);
             auto range = RangeMin() + rayShape->GetRange(idx);
             auto retro = rayShape->GetRetro(idx);
-            if (retro >= 0.13369 && retro <= 0.13371) // range == 0.0 &&
+            if (retro == 0.0)
             {
-                // set to fixed range to be able to show it in rViz
-                //range = 15.0;
                 *out_yaw = rotateInfo.azimuth;
                 *out_pitch = rotateInfo.zenith;
                 ignition::math::Quaterniond ray;
