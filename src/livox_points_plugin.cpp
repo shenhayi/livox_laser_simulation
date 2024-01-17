@@ -148,7 +148,6 @@ void LivoxPointsPlugin::OnNewLaserScans() {
                 range = 0.0;
             } else if (range <= RangeMin()) {
                 range = 0.0;
-                // this one should could be a point with no return -> publish it in second cloud with zenith / azimuth
             }
 
             auto retro = rayShape->GetRetro(idx);
