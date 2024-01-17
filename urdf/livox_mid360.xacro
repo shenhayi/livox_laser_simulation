@@ -7,6 +7,7 @@
   <xacro:property name="horizontal_fov" value="360"/>
   <xacro:property name="vertical_fov" value="180.0"/>
   <xacro:property name="ros_topic" value="scan"/>
+  <xacro:property name="ros_non_return_topic" value="non_return_rays"/>
   <xacro:property name="samples" value="20000"/>
   <xacro:property name="downsample" value="1"/>
 
@@ -21,7 +22,7 @@
     </inertial>
   </xacro:macro>
   <!-- CPU Based simulation -->
-  <xacro:macro name="livox_mid_gazebo_sensor" params="visualize:=False update_rate:=10 resolution:=0.002 noise_mean:=0.0 noise_stddev:=0.01 name:=livox ros_topic:=scan">
+  <xacro:macro name="livox_mid_gazebo_sensor" params="visualize:=False update_rate:=10 resolution:=0.002 noise_mean:=0.0 noise_stddev:=0.01 name:=livox ros_topic:=scan ros_non_return_topic:=non_return_rays">
     <gazebo reference="${name}">
       <sensor type="ray" name="laser_${name}">
         <pose>0 0 0 0 0 0</pose>
@@ -59,6 +60,7 @@
           <downsample>${downsample}</downsample>
           <csv_file_name>package://livox_laser_simulation/scan_mode/mid360.csv</csv_file_name>
           <ros_topic>${ros_topic}</ros_topic>
+          <ros_non_return_topic>${ros_non_return_topic}</ros_non_return_topic>
         </plugin>
       </sensor>
     </gazebo>
@@ -139,7 +141,7 @@
     </xacro:if>
     <xacro:unless value="${gpu_enabled}">
       <!-- CPU based simulation -->
-      <xacro:livox_mid_gazebo_sensor name="${name}" visualize="${visualize}" ros_topic="${ros_topic}"/>
+      <xacro:livox_mid_gazebo_sensor name="${name}" visualize="${visualize}" ros_topic="${ros_topic}" ros_non_return_topic="${ros_non_return_topic}"/>
     </xacro:unless>
   </xacro:macro>
     <xacro:Livox_Mid360 name="livox"/>

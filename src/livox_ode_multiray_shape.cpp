@@ -161,8 +161,17 @@ void LivoxOdeMultiRayShape::UpdateCallback(void *_data, dGeomID _o1, dGeomID _o2
                     //      << " hit[" << hitCollision->GetScopedName() << "]"
                     //      << " pose[" << hitCollision->GetWorldPose() << "]"
                     //      << "\n";
-                    shape->SetLength(contact.depth);
-                    shape->SetRetro(hitCollision->GetLaserRetro());
+                    // Non-return
+                    if (hitCollision->GetLaserRetro() < 0.0001)
+                    {
+                        shape->SetLength(contact.depth); // point is normally in center 0.0, but publish it at contact for visu
+                        shape->SetRetro(0.0);
+                    }
+                    else
+                    {
+                        shape->SetLength(contact.depth);
+                        shape->SetRetro(hitCollision->GetLaserRetro());
+                    }
                 }
             }
         }

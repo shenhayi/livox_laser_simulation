@@ -7,6 +7,7 @@ add_compile_options(-std=c++17)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf
+  visualization_msgs
 )
 
 find_package(gazebo REQUIRED)
