@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="world" default="$(find livox_laser_simulation)/worlds/standardrobots_factory.world" />
+  <arg name="world" default="$(find livox_laser_simulation)/worlds/corridor_dynamic_9.world" />
   <arg name="livox_sensor" default="$(find livox_laser_simulation)/urdf/livox_mid360.xacro" />
   <arg name="gpu" default="false" />
 
